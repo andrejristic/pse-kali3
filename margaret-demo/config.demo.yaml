@@ -1,0 +1,11 @@
+# Margaret demo — rules of engagement (the ONLY two authorized targets).
+# Copy this to the repo root as config.yaml, then edit YOUR-IP:
+#   cp margaret-demo/config.demo.yaml config.yaml
+#
+# The demo uses run_action.py, which needs no model — only scope + authorizations.
+scope:
+  - 10.10.10.0/24          # the lab on the laptop (Lessons 1-3)
+  - 192.168.1.50/32        # YOUR machine (Lesson 4) — EDIT to your real IP (hostname -I)
+authorizations:
+  - target_scope: [10.10.10.0/24, 192.168.1.50/32]
+    tools: [nmap, hashcat, john, tcpdump, tshark, ssh]

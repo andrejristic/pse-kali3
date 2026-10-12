@@ -1,0 +1,318 @@
+<title>PSE-Kali · Governed Security Console</title>
+<style>
+  /* Deliberately one visual world: a calm dark security console.
+     Coordinated cool-jewel palette (slate + cyan signature; sky/violet/emerald
+     units) with warm tones reserved strictly for alerts. */
+  :root{
+    --bg:#0b0f17; --surface:#111826; --surface-2:#0d1420; --raise:#16202f;
+    --line:#1e293b; --line-2:#273449;
+    --ink:#e8eef7; --ink-2:#a3b2c6; --muted:#6b7a90;
+    --accent:#22d3ee; --accent-dim:#0e7490;
+    --recon:#38bdf8; --password:#a78bfa; --sniff:#34d399;
+    --pass:#34d399; --block:#fb7185; --floor:#fbbf24;
+    --tri-fill:#0e1826; --tri-line:#26374d;
+    --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --r:12px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:
+      radial-gradient(1200px 600px at 80% -10%, #12233010, transparent),
+      var(--bg);
+    color:var(--ink);font-family:var(--sans);line-height:1.5;
+    -webkit-font-smoothing:antialiased}
+  .eyebrow{font-size:10.5px;text-transform:uppercase;letter-spacing:.11em;
+    color:var(--muted);font-weight:600}
+  .mono{font-family:var(--mono)}
+
+  /* ---- app bar ---- */
+  header{display:flex;align-items:center;gap:16px;padding:14px 22px;
+    border-bottom:1px solid var(--line);background:linear-gradient(180deg,#0e1622,#0b0f17)}
+  .brand{display:flex;align-items:center;gap:11px}
+  .mark{width:26px;height:26px;border-radius:7px;flex:none;position:relative;
+    background:linear-gradient(135deg,var(--accent),#6366f1);
+    box-shadow:0 0 0 1px #ffffff12, 0 6px 18px -6px var(--accent)}
+  .mark::after{content:"";position:absolute;inset:6px;border-radius:3px;
+    border:1.5px solid #0b0f17aa}
+  .brand b{font-size:15px;letter-spacing:.02em}
+  .brand .k{color:var(--muted);font-weight:500}
+  .barsub{color:var(--ink-2);font-size:12.5px}
+  .spacer{margin-left:auto}
+  .pill{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);
+    font-size:12px;color:var(--ink-2);background:var(--surface);
+    border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}
+  .dot.live{background:var(--pass);box-shadow:0 0 0 3px #34d39926}
+  @media(prefers-reduced-motion:no-preference){.dot.live{animation:bp 1.6s ease-in-out infinite}}
+  @keyframes bp{50%{box-shadow:0 0 0 6px #34d39900}}
+
+  /* ---- layout ---- */
+  .app{display:grid;grid-template-columns:270px minmax(0,1fr) 340px;gap:16px;
+    padding:16px 22px 28px;max-width:1320px;margin:0 auto}
+  @media(max-width:1080px){.app{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--surface),var(--surface-2));
+    border:1px solid var(--line);border-radius:var(--r);padding:15px}
+  .card + .card{margin-top:14px}
+  .card h3{margin:0 0 12px;font-size:11px;text-transform:uppercase;
+    letter-spacing:.09em;color:var(--muted);font-weight:600}
+
+  /* ---- control rail ---- */
+  .btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    font:inherit;font-size:13.5px;font-weight:600;padding:11px;border-radius:10px;
+    cursor:pointer;border:1px solid var(--line-2);background:var(--raise);
+    color:var(--ink);transition:.15s}
+  .btn:hover{border-color:var(--accent-dim)}
+  .btn.primary{background:linear-gradient(180deg,#0891a8,#0e7490);
+    border-color:#0e7490;color:#eafcff}
+  .btn.primary:hover{filter:brightness(1.08)}
+  .btn:disabled{opacity:.45;cursor:not-allowed}
+  .btnrow{display:flex;gap:9px}
+  .hint{font-size:11px;color:var(--muted);margin-top:9px;line-height:1.5}
+  .unit{display:flex;align-items:center;gap:10px;padding:8px 0}
+  .unit + .unit{border-top:1px solid var(--line)}
+  .sw{width:9px;height:9px;border-radius:3px;flex:none}
+  .unit .nm{font-size:13px;font-weight:600}
+  .unit .tl{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .unit .mdl{margin-left:auto;font-size:10.5px;color:var(--ink-2);font-family:var(--mono)}
+  .scope{font-family:var(--mono);font-size:12.5px;color:var(--accent);
+    background:#22d3ee0d;border:1px solid #22d3ee2e;border-radius:8px;padding:8px 10px}
+  .roe{font-size:11.5px;color:var(--ink-2);line-height:1.6;margin:9px 0 0;padding:0 0 0 15px}
+  .roe li{margin:2px 0}
+
+  /* ---- simplex hero ---- */
+  .hero{padding:18px}
+  .hero .top{display:flex;align-items:baseline;gap:10px;margin-bottom:6px}
+  .hero h2{margin:0;font-size:15px;font-weight:650;letter-spacing:.01em}
+  svg{width:100%;height:auto;display:block}
+  .corner{font-family:var(--mono);font-size:3px;fill:var(--ink-2)}
+  .corner .big{font-size:3.5px;font-weight:700;fill:var(--ink)}
+  .controls{display:flex;align-items:center;gap:12px;margin-top:6px}
+  .controls button{font:inherit;font-size:12.5px;padding:6px 13px;border-radius:8px;
+    cursor:pointer;border:1px solid var(--line-2);background:var(--raise);color:var(--ink)}
+  .controls button:hover{border-color:var(--accent-dim)}
+  .controls input[type=range]{flex:1;accent-color:var(--accent)}
+  .step{font-family:var(--mono);font-size:12px;color:var(--muted);min-width:64px;text-align:right}
+
+  /* ---- right stream ---- */
+  .tiles{display:flex;gap:9px}
+  .tile{flex:1;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:10px;padding:10px 12px}
+  .tile .n{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .tile .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+  .n.pass{color:var(--pass)} .n.block{color:var(--block)}
+  .stream{display:flex;flex-direction:column;gap:7px;max-height:340px;overflow:auto}
+  .row{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;
+    padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);
+    font-size:12px}
+  .row.cur{border-color:var(--accent-dim);background:#22d3ee0a}
+  .row .who{font-family:var(--mono);font-size:11px}
+  .row .what{font-family:var(--mono);color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .badge{font-size:10px;font-weight:700;font-family:var(--mono);padding:2px 7px;border-radius:6px;white-space:nowrap}
+  .b-pass{color:var(--pass);background:#34d39914;border:1px solid #34d39930}
+  .b-block{color:var(--block);background:#fb718514;border:1px solid #fb718530}
+  .b-floor{color:var(--floor);background:#fbbf2414;border:1px solid #fbbf2430}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-family:var(--mono);font-size:11px;color:var(--ink-2);
+    background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:3px 9px}
+  .foot{grid-column:1/-1;color:var(--muted);font-size:11.5px;line-height:1.65;
+    border-top:1px solid var(--line);padding-top:14px;margin-top:2px}
+  .foot code{font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);
+    padding:1px 5px;border-radius:5px;color:var(--ink-2)}
+</style>
+
+<header>
+  <div class="brand"><span class="mark"></span>
+    <b>PSE<span class="k">·</span>KALI</b></div>
+  <span class="barsub">governed security console</span>
+  <div class="spacer"></div>
+  <span class="pill" id="engpill">ENG —</span>
+  <span class="pill"><span class="dot" id="statusdot"></span><span id="statustext">offline</span></span>
+</header>
+
+<div class="app">
+  <!-- control rail -->
+  <div>
+    <div class="card">
+      <h3>Engagement</h3>
+      <div class="btnrow">
+        <button class="btn primary" id="run">▶ Run</button>
+        <button class="btn" id="stop" disabled>■ Stop</button>
+      </div>
+      <div class="hint" id="ctlhint">Runs one governed engagement against the lab target.</div>
+    </div>
+    <div class="card">
+      <h3>Units · operator</h3>
+      <div class="unit"><span class="sw" style="background:var(--recon)"></span>
+        <div><div class="nm" style="color:var(--recon)">Recon</div><div class="tl">nmap · theHarvester</div></div>
+        <span class="mdl" id="m-recon">—</span></div>
+      <div class="unit"><span class="sw" style="background:var(--password)"></span>
+        <div><div class="nm" style="color:var(--password)">Password</div><div class="tl">hashcat · john</div></div>
+        <span class="mdl" id="m-password">—</span></div>
+      <div class="unit"><span class="sw" style="background:var(--sniff)"></span>
+        <div><div class="nm" style="color:var(--sniff)">Sniffer</div><div class="tl">tcpdump · bettercap</div></div>
+        <span class="mdl" id="m-sniff">—</span></div>
+    </div>
+    <div class="card">
+      <h3>Authorized scope</h3>
+      <div class="scope" id="scope">10.10.10.0/24</div>
+      <ul class="roe">
+        <li>Act only within scope.</li>
+        <li>Least-intrusive first.</li>
+        <li>No artifact without provenance.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- simplex hero -->
+  <div class="card hero">
+    <div class="top"><h2>Care-invariant simplex</h2>
+      <span class="eyebrow">four units · one kernel · one wall</span></div>
+    <svg id="simplex" viewBox="0 0 100 92" role="img" aria-label="Governed simplex"></svg>
+    <div class="controls">
+      <button id="play">▶ Replay</button>
+      <button id="reset">↺</button>
+      <input type="range" id="scrub" min="0" value="0" step="1">
+      <span class="step" id="stepc">0 / 0</span>
+    </div>
+  </div>
+
+  <!-- stream -->
+  <div>
+    <div class="card">
+      <h3>This engagement</h3>
+      <div class="tiles">
+        <div class="tile"><div class="n" id="t-total">0</div><div class="l">actions</div></div>
+        <div class="tile"><div class="n pass" id="t-pass">0</div><div class="l">passed</div></div>
+        <div class="tile"><div class="n block" id="t-held">0</div><div class="l">held</div></div>
+      </div>
+      <div id="theta" class="hint" style="margin-top:11px">θ per unit — waiting…</div>
+    </div>
+    <div class="card">
+      <h3>Audit stream</h3>
+      <div class="stream" id="stream"></div>
+    </div>
+    <div class="card">
+      <h3>Shared findings</h3>
+      <div class="chips" id="findings"><span class="hint">— none yet —</span></div>
+    </div>
+  </div>
+
+  <p class="foot">
+    Corners are failure attractors — <b style="color:var(--recon)">w_s</b> over-reach
+    (Narcissistic), <b style="color:var(--password)">w_o</b> un-scoped compliance
+    (Codependent), <b style="color:var(--sniff)">w_f</b> cold execution (Schizoid).
+    The fourth attractor, <b>Borderline</b>, has no corner — it is inconsistency
+    across turns (trajectory variance).
+    Dashed rings are the <code>ε=0.28</code> membrane. Below the authorization floor
+    <code>auth&lt;0.35</code> an action is <b>unreachable</b> — it can only escalate to a human.
+    Served locally, <b>Run</b> drives real tools and this console follows the audit live.
+  </p>
+</div>
+
+<script>
+const RECORDS = [
+  {engagement:"ENG-DEMO",unit:"recon",tool:"nmap",target:"10.10.10.0/24",w:[0,0,1],auth:1,allowed:true,kind:null,floor:false,why:"proportionate, in-scope"},
+  {engagement:"ENG-DEMO",unit:"recon",tool:"nmap",target:"10.10.10.0/24",w:[1,0,0],auth:1,allowed:false,kind:"narcissistic",floor:false,why:"max-aggression + exploit scripts"},
+  {engagement:"ENG-DEMO",unit:"sniff",tool:"bettercap",target:"192.168.1.50",w:[0,1,0],auth:0,allowed:false,kind:"unauthorized",floor:true,why:"out-of-scope MITM below the floor"},
+  {engagement:"ENG-DEMO",unit:"password",tool:"hashcat",target:"10.10.10.5",w:[0,0,1],auth:1,allowed:true,kind:null,floor:false,why:"hash has in-scope provenance"},
+  {engagement:"ENG-DEMO",unit:"sniff",tool:"tcpdump",target:"10.10.10.5",w:[0,0,1],auth:1,allowed:true,kind:null,floor:false,why:"passive capture in scope"},
+];
+const UNITV={recon:'--recon',password:'--password',sniff:'--sniff'};
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const color=u=>cssv(UNITV[u]||'--muted');
+
+// ---- geometry ----
+const S=84,PADX=8,PADY=6,HH=Math.sqrt(3)/2;
+const A={x:0,y:0},B={x:1,y:0},C={x:.5,y:HH};
+const pt=(ws,wo,wf)=>({x:PADX+(ws*A.x+wo*B.x+wf*C.x)*S,y:PADY+(HH-(ws*A.y+wo*B.y+wf*C.y))*S});
+const EPS2D=0.28/Math.SQRT2*S;
+const svg=document.getElementById('simplex'),NS='http://www.w3.org/2000/svg';
+const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+
+function drawStatic(){
+  svg.innerHTML='';
+  const pa=pt(1,0,0),pb=pt(0,1,0),pc=pt(0,0,1);
+  svg.appendChild(el('polygon',{points:`${pa.x},${pa.y} ${pb.x},${pb.y} ${pc.x},${pc.y}`,
+    fill:cssv('--tri-fill'),stroke:cssv('--tri-line'),'stroke-width':.4}));
+  for(const p of [pa,pb]) svg.appendChild(el('circle',{cx:p.x,cy:p.y,r:EPS2D,fill:'none',
+    stroke:cssv('--block'),'stroke-width':.35,'stroke-dasharray':'1.4 1.2',opacity:.65}));
+  const lab=(p,big,dx,dy,anc)=>{const g=el('text',{x:p.x+dx,y:p.y+dy,'text-anchor':anc,class:'corner'});
+    const t=el('tspan',{x:p.x+dx,class:'big'});t.textContent=big;g.appendChild(t);svg.appendChild(g);};
+  lab(pa,'NARCISSISTIC',-1,6.5,'start');lab(pb,'CODEPENDENT',1,6.5,'end');lab(pc,'SCHIZOID',0,-3,'middle');
+  svg.appendChild(el('g',{id:'trails'}));svg.appendChild(el('g',{id:'pts'}));
+}
+function render(idx){
+  const trails=svg.querySelector('#trails'),pts=svg.querySelector('#pts');
+  trails.innerHTML='';pts.innerHTML='';const per={};
+  for(let i=0;i<=idx&&i<RECORDS.length;i++){(per[RECORDS[i].unit]=per[RECORDS[i].unit]||[]).push(RECORDS[i]);}
+  for(const u in per){const seq=per[u].filter(r=>r.allowed);
+    for(let i=1;i<seq.length;i++){const a=pt(...seq[i-1].w),b=pt(...seq[i].w);
+      trails.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color(u),'stroke-width':.5,opacity:.4}));}}
+  for(const u in per){per[u].forEach(r=>{const p=pt(...r.w),cur=RECORDS[idx]===r;
+    if(r.allowed){pts.appendChild(el('circle',{cx:p.x,cy:p.y,r:cur?3:2.2,fill:color(u),
+      stroke:cssv('--bg'),'stroke-width':.5}));}
+    else{const c=cssv(r.floor?'--floor':'--block');
+      pts.appendChild(el('circle',{cx:p.x,cy:p.y,r:3.2,fill:'none',stroke:c,'stroke-width':.7}));
+      pts.appendChild(el('circle',{cx:p.x,cy:p.y,r:1.1,fill:c}));}});}
+}
+function badge(r){return r.allowed?['b-pass','PASS']:(r.floor?['b-floor','ESCALATE']:['b-block','HELD']);}
+function panels(idx){
+  let pass=0,held=0,found={};
+  for(let i=0;i<=idx;i++){const r=RECORDS[i];r.allowed?pass++:held++;
+    if(r.allowed){const k=({recon:'host',password:'cred',sniff:'pcap'})[r.unit];if(k)found[k]=(found[k]||0)+1;}}
+  T('t-total',idx+1);T('t-pass',pass);T('t-held',held);
+  const lat={};for(let i=0;i<=idx;i++){const r=RECORDS[i];if(r.allowed)lat[r.unit]=r.w[1];}
+  const us=Object.keys(lat);
+  document.getElementById('theta').innerHTML = us.length ? 'θ (other share): '+['recon','password','sniff','access'].filter(u=>u in lat).map(u=>{
+    const t=lat[u]*100,c=t<15?'var(--pass)':(t<30?'var(--floor)':'var(--block)');
+    return `<b style="color:${color(u)}">${u}</b> <span style="color:${c}">θ=${t.toFixed(0)}%</span>`;}).join(' · ')
+    : 'θ per unit — no passing actions yet';
+  const counts={};RECORDS.forEach(r=>counts[r.unit]=(counts[r.unit]||0)+1);
+  ['recon','password','sniff'].forEach(u=>T('m-'+u,(counts[u]||0)+' act'));
+  const st=document.getElementById('stream');st.innerHTML='';
+  for(let i=0;i<=idx;i++){const r=RECORDS[i],[bc,bt]=badge(r);const d=document.createElement('div');
+    d.className='row'+(i===idx?' cur':'');
+    d.innerHTML=`<span class="who" style="color:${color(r.unit)}">${r.unit}</span>
+      <span class="what">${r.tool} ${r.target}</span><span class="badge ${bc}">${bt}</span>`;
+    st.appendChild(d);}
+  st.scrollTop=st.scrollHeight;
+  const fw=document.getElementById('findings'),ks=Object.keys(found);
+  fw.innerHTML=ks.length?ks.map(k=>`<span class="chip">${k} ×${found[k]}</span>`).join(''):'<span class="hint">— none yet —</span>';
+  document.getElementById('stepc').textContent=`${idx+1} / ${RECORDS.length}`;
+  document.getElementById('engpill').textContent='ENG '+(RECORDS[0]?RECORDS[0].engagement:'—');
+}
+const T=(id,v)=>document.getElementById(id).textContent=v;
+
+let idx=0,timer=null;const scrub=document.getElementById('scrub');
+function show(i){idx=Math.max(0,Math.min(RECORDS.length-1,i));scrub.value=idx;render(idx);panels(idx);}
+function refreshAll(){scrub.max=Math.max(0,RECORDS.length-1);show(RECORDS.length?RECORDS.length-1:0);}
+function play(){if(timer){clearInterval(timer);timer=null;pb('▶ Replay');return;}
+  if(idx>=RECORDS.length-1)show(0);pb('❚❚');
+  timer=setInterval(()=>{if(idx>=RECORDS.length-1){clearInterval(timer);timer=null;pb('▶ Replay');return;}show(idx+1);},850);}
+const pb=t=>document.getElementById('play').textContent=t;
+document.getElementById('play').onclick=play;
+document.getElementById('reset').onclick=()=>{if(timer){clearInterval(timer);timer=null;pb('▶ Replay');}show(0);};
+scrub.oninput=e=>{if(timer){clearInterval(timer);timer=null;pb('▶ Replay');}show(+e.target.value);};
+
+// ---- live / control (only when served by serve_monitor) ----
+let live=false;
+function setStatus(on){live=on;const d=document.getElementById('statusdot'),t=document.getElementById('statustext');
+  d.classList.toggle('live',on);t.textContent=on?'live':'offline';}
+async function pull(){try{const r=await fetch('events',{cache:'no-store'});if(!r.ok)return false;
+  const data=await r.json();if(Array.isArray(data)){const atEnd=idx>=RECORDS.length-1;
+    RECORDS.length=0;data.forEach(x=>RECORDS.push(x));scrub.max=Math.max(0,RECORDS.length-1);
+    show(atEnd?RECORDS.length-1:idx);}return true;}catch(e){return false;}}
+document.getElementById('run').onclick=async()=>{
+  try{const r=await fetch('run',{method:'POST'});if(!r.ok)throw 0;
+    document.getElementById('run').disabled=true;document.getElementById('stop').disabled=false;
+    document.getElementById('ctlhint').textContent='Engagement running — following the audit live.';}
+  catch(e){document.getElementById('ctlhint').textContent='Run works when served locally: python3 monitor/serve_monitor.py';}
+};
+document.getElementById('stop').onclick=async()=>{try{await fetch('stop',{method:'POST'});}catch(e){}
+  document.getElementById('run').disabled=false;document.getElementById('stop').disabled=true;};
+
+drawStatic();refreshAll();
+matchMedia('(prefers-color-scheme:dark)').addEventListener('change',()=>{drawStatic();render(idx);});
+if(location.protocol.startsWith('http')){ pull().then(ok=>{if(ok){setStatus(true);setInterval(pull,1500);}}); }
+</script>

@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSE-Kali · Governed Security Console</title>
+<style>
+  :root{
+    --bg:#0b0f17; --surface:#111826; --surface-2:#0d1420; --raise:#16202f;
+    --line:#1e293b; --line-2:#273449; --ink:#e8eef7; --ink-2:#a3b2c6; --muted:#6b7a90;
+    --accent:#22d3ee; --accent-dim:#0e7490;
+    --recon:#38bdf8; --password:#a78bfa; --sniff:#34d399; --access:#e879f9;
+    --pass:#34d399; --block:#fb7185; --floor:#fbbf24;
+    --tri-fill:#0e1826; --tri-line:#26374d;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .eyebrow{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:600}
+  header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,#0e1622,#0b0f17)}
+  .mark{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,var(--accent),#6366f1)}
+  header b{font-size:17px} header .k{color:var(--muted);font-weight:500}
+  .sub{color:var(--ink-2);font-size:14px}
+  .spacer{margin-left:auto}
+  .pill{font-family:var(--mono);font-size:13px;color:var(--ink-2);background:var(--surface);
+    border:1px solid var(--line);border-radius:999px;padding:5px 13px}
+  .app{display:grid;grid-template-columns:360px minmax(0,1fr) 360px;gap:16px;padding:16px 22px 40px;
+    max-width:1440px;margin:0 auto}
+  @media(max-width:1100px){.app{grid-template-columns:1fr}}
+  .card{background:linear-gradient(180deg,var(--surface),var(--surface-2));border:1px solid var(--line);
+    border-radius:12px;padding:15px}
+  .card+.card{margin-top:14px}
+  h3{margin:0 0 11px;font-size:12px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:600}
+  svg{width:100%;height:auto;display:block}
+  .corner{font-family:var(--mono);font-size:3px;fill:var(--ink-2)} .corner .big{font-size:3.5px;font-weight:700;fill:var(--ink)}
+  input,select,button,textarea{font:inherit}
+  input[type=text],select{width:100%;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:9px;color:var(--ink);padding:10px 12px;font-size:15px}
+  button{background:var(--raise);border:1px solid var(--line-2);border-radius:9px;color:var(--ink);
+    padding:9px 15px;cursor:pointer;font-size:15px}
+  button:hover{border-color:var(--accent-dim)}
+  button.primary{background:var(--accent);color:#04222a;font-weight:600;border:none}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .row{display:flex;gap:9px;align-items:center}
+  .log{height:200px;overflow:auto;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;
+    padding:10px;font-family:var(--mono);font-size:13px;color:var(--ink-2);white-space:pre-wrap}
+  .esc{border:1px solid var(--line);border-radius:9px;padding:9px 11px;margin-bottom:8px;background:var(--surface-2)}
+  .esc .h{font-family:var(--mono);font-size:13px} .esc .r{color:var(--muted);font-size:12px;margin:4px 0 8px}
+  .u-recon{color:var(--recon)} .u-password{color:var(--password)} .u-sniff{color:var(--sniff)} .u-access{color:var(--access)}
+  .tiles{display:flex;gap:9px}
+  .tile{flex:1;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .tile .n{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums} .tile .l{font-size:11px;color:var(--muted);text-transform:uppercase}
+  .n.pass{color:var(--pass)} .n.held{color:var(--block)}
+  .stream{max-height:300px;overflow:auto;display:flex;flex-direction:column;gap:6px}
+  .srow{display:grid;grid-template-columns:auto 1fr auto;gap:9px;align-items:center;font-size:13px;
+    padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+  .srow .what{font-family:var(--mono);color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .badge{font-size:11px;font-weight:700;font-family:var(--mono);padding:2px 8px;border-radius:6px}
+  .b-pass{color:var(--pass);background:#34d39914} .b-held{color:var(--block);background:#fb718514} .b-floor{color:var(--floor);background:#fbbf2414}
+  .muted{color:var(--muted);font-size:13px}
+  .foot{grid-column:1/-1;color:var(--muted);font-size:13px;border-top:1px solid var(--line);padding-top:14px;line-height:1.6}
+  code{font-family:var(--mono);background:var(--surface-2);border:1px solid var(--line);padding:1px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<header>
+  <span class="mark"></span><b>PSE<span class="k">·</span>KALI</b>
+  <span class="sub">governed security console — web</span>
+  <div class="spacer"></div>
+  <span class="pill" id="model">model —</span>
+  <span class="pill" id="mode">connecting…</span>
+</header>
+
+<div class="app">
+  <!-- control column -->
+  <div>
+    <div class="card">
+      <h3>Command — talk to the commander</h3>
+      <div class="log" id="log"></div>
+      <div class="row" style="margin-top:10px">
+        <input type="text" id="cmd" placeholder="e.g. focus recon on 10.10.10.5, turn off the sniffer">
+        <button class="primary" id="send">Send</button>
+      </div>
+      <div class="row" style="margin-top:8px;gap:6px">
+        <button class="preset" data-p="full">Full</button>
+        <button class="preset" data-p="recon">Recon</button>
+        <button class="preset" data-p="passive">Passive</button>
+        <button class="preset" data-p="stop">Stop all</button>
+      </div>
+      <div class="muted" style="margin-top:7px">The commander re-tasks the units live. It can only narrow within the authorized scope.</div>
+    </div>
+    <div class="card">
+      <h3>Approvals — judgment holds</h3>
+      <div id="escs"><div class="muted">— no pending holds —</div></div>
+    </div>
+    <div class="card">
+      <h3>Local model</h3>
+      <div class="row"><select id="models"></select><button id="switch">Switch</button></div>
+      <div class="muted" id="mstatus" style="margin-top:7px"></div>
+    </div>
+    <div class="card">
+      <h3>Authorized scope</h3>
+      <div id="scope" class="muted" style="font-family:var(--mono)">—</div>
+      <div class="row" style="margin-top:9px">
+        <input type="text" id="scopein" placeholder="add target e.g. 10.10.10.9/32">
+        <button id="authbtn">Authorize</button>
+      </div>
+      <div class="muted" style="margin-top:6px">Deliberate + logged — the one thing the commander can't do.</div>
+    </div>
+  </div>
+
+  <!-- simplex -->
+  <div class="card">
+    <h3>Care-invariant simplex — four units live</h3>
+    <svg id="simplex" viewBox="0 0 100 92" role="img" aria-label="Governed simplex"></svg>
+  </div>
+
+  <!-- stream -->
+  <div>
+    <div class="card">
+      <h3>This engagement</h3>
+      <div class="tiles">
+        <div class="tile"><div class="n" id="t-total">0</div><div class="l">actions</div></div>
+        <div class="tile"><div class="n pass" id="t-pass">0</div><div class="l">passed</div></div>
+        <div class="tile"><div class="n held" id="t-held">0</div><div class="l">held</div></div>
+      </div>
+      <div id="theta" class="muted" style="margin-top:11px">θ per unit — waiting…</div>
+    </div>
+    <div class="card"><h3>Audit stream</h3><div class="stream" id="stream"></div></div>
+  </div>
+
+  <p class="foot">
+    Corners are failure attractors — <b class="u-recon">w_s</b> over-reach,
+    <b class="u-password">w_o</b> un-scoped compliance, <b class="u-sniff">w_f</b> cold execution.
+    The fourth attractor, <b>Borderline</b>, has no corner — it's inconsistency across turns (variance).
+    Rings are the <code>ε=0.28</code> membrane. Below the floor <code>auth&lt;0.35</code> an action is
+    <b>unreachable</b> — the audit shows it denied. Approving a judgment hold executes it; the floor is never
+    click-approvable. In demo mode no real tools run.
+  </p>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+const cssv=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const UNITV={recon:'--recon',password:'--password',sniff:'--sniff',access:'--access'};
+const color=u=>cssv(UNITV[u]||'--muted');
+
+// ---- simplex geometry ----
+const S=84,PADX=8,PADY=6,HH=Math.sqrt(3)/2;
+const A={x:0,y:0},B={x:1,y:0},C={x:.5,y:HH};
+const pt=(ws,wo,wf)=>({x:PADX+(ws*A.x+wo*B.x+wf*C.x)*S,y:PADY+(HH-(ws*A.y+wo*B.y+wf*C.y))*S});
+const EPS2D=0.28/Math.SQRT2*S;
+const svg=$('#simplex'),NS='http://www.w3.org/2000/svg';
+const el=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+function drawStatic(){
+  svg.innerHTML='';const pa=pt(1,0,0),pb=pt(0,1,0),pc=pt(0,0,1);
+  svg.appendChild(el('polygon',{points:`${pa.x},${pa.y} ${pb.x},${pb.y} ${pc.x},${pc.y}`,fill:cssv('--tri-fill'),stroke:cssv('--tri-line'),'stroke-width':.4}));
+  for(const p of [pa,pb])svg.appendChild(el('circle',{cx:p.x,cy:p.y,r:EPS2D,fill:'none',stroke:cssv('--block'),'stroke-width':.35,'stroke-dasharray':'1.4 1.2',opacity:.65}));
+  const lab=(p,t,dx,dy,an)=>{const g=el('text',{x:p.x+dx,y:p.y+dy,'text-anchor':an,class:'corner'});const s=el('tspan',{x:p.x+dx,class:'big'});s.textContent=t;g.appendChild(s);svg.appendChild(g);};
+  lab(pa,'NARCISSISTIC',-1,6.5,'start');lab(pb,'CODEPENDENT',1,6.5,'end');lab(pc,'SCHIZOID',0,-3,'middle');
+  svg.appendChild(el('g',{id:'trails'}));svg.appendChild(el('g',{id:'pts'}));
+}
+function renderSimplex(recs){
+  const trails=svg.querySelector('#trails'),pts=svg.querySelector('#pts');trails.innerHTML='';pts.innerHTML='';
+  const per={};recs.forEach(r=>(per[r.unit]=per[r.unit]||[]).push(r));
+  for(const u in per){const seq=per[u].filter(r=>r.allowed);
+    for(let i=1;i<seq.length;i++){const a=pt(...seq[i-1].w),b=pt(...seq[i].w);
+      trails.appendChild(el('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:color(u),'stroke-width':.5,opacity:.4}));}}
+  for(const u in per)per[u].forEach(r=>{const p=pt(...r.w);
+    if(r.allowed)pts.appendChild(el('circle',{cx:p.x,cy:p.y,r:2.4,fill:color(u),stroke:cssv('--bg'),'stroke-width':.5}));
+    else{const c=cssv(r.floor?'--floor':'--block');pts.appendChild(el('circle',{cx:p.x,cy:p.y,r:3.2,fill:'none',stroke:c,'stroke-width':.7}));pts.appendChild(el('circle',{cx:p.x,cy:p.y,r:1.1,fill:c}));}});
+}
+function badge(r){return r.allowed?['b-pass','PASS']:(r.floor?['b-floor','ESCALATE']:['b-held','HELD']);}
+
+// ---- API ----
+const TOK=new URLSearchParams(location.search).get('t')||'';
+const HDR=TOK?{'X-PSE-Token':TOK}:{};
+const api={
+  get:async p=>{const r=await fetch(p,{cache:'no-store',headers:HDR});if(!r.ok)throw 0;return r.json();},
+  post:async(p,b)=>{const r=await fetch(p,{method:'POST',headers:{'Content-Type':'application/json',...HDR},body:JSON.stringify(b||{})});return r.json();}
+};
+let logCursor=0, connected=false;
+
+async function tick(){
+  try{
+    const recs=await api.get('events');
+    renderSimplex(recs);
+    let pass=recs.filter(r=>r.allowed).length;
+    $('#t-total').textContent=recs.length;$('#t-pass').textContent=pass;$('#t-held').textContent=recs.length-pass;
+    const st=$('#stream');st.innerHTML='';
+    recs.forEach(r=>{const[bc,bt]=badge(r);const d=document.createElement('div');d.className='srow';
+      d.innerHTML=`<span class="u-${r.unit}" style="font-family:var(--mono);font-size:12px">${r.unit}</span><span class="what">${r.tool} ${r.target}</span><span class="badge ${bc}">${bt}</span>`;st.appendChild(d);});
+    st.scrollTop=st.scrollHeight;
+    // θ (other/w_o share) per unit — latest passing action; low = healthy here
+    const lat={}; recs.forEach(r=>{if(r.allowed)lat[r.unit]=r.w[1];});
+    const us=Object.keys(lat);
+    $('#theta').innerHTML = us.length ? 'θ (other share): '+['recon','password','sniff','access'].filter(u=>u in lat).map(u=>{
+      const t=lat[u]*100, c=t<15?'var(--pass)':(t<30?'var(--floor)':'var(--block)');
+      return `<b class="u-${u}">${u}</b> <span style="color:${c}">θ=${t.toFixed(0)}%</span>`;}).join(' · ')
+      : 'θ per unit — no passing actions yet';
+
+    const lg=await api.get('log?since='+logCursor);
+    if(lg.lines.length){const box=$('#log');lg.lines.forEach(l=>{box.textContent+=l+'\n';});box.scrollTop=box.scrollHeight;logCursor=lg.total;}
+
+    const escs=await api.get('escalations');
+    const box=$('#escs');
+    if(!escs.length)box.innerHTML='<div class="muted">— no pending holds —</div>';
+    else box.innerHTML=escs.map(e=>`<div class="esc"><div class="h">#${e.id} <span class="u-${e.unit}">${e.unit}</span> · ${e.kind}<br>${e.tool} ${e.target}</div><div class="r">${e.reason||''}</div><div class="row"><button class="primary" onclick="decide(${e.id},'approve')">Approve</button><button onclick="decide(${e.id},'deny')">Deny</button></div></div>`).join('');
+
+    const m=await api.get('models');
+    $('#model').textContent='model '+m.active;
+    const sel=$('#models');
+    if(sel.dataset.n!=String(m.available.length)){sel.dataset.n=m.available.length;sel.innerHTML=m.available.length?m.available.map(x=>`<option value="${x.path}" data-fits="${x.fits}" ${x.fits?'':'disabled'}>${x.name} (${x.size_gb} GB)${x.fits?'':' — too big'}</option>`).join(''):'<option value="">(no models in ./models)</option>';}
+    $('#mstatus').textContent=m.swapping?'swapping…':'';$('#switch').disabled=m.swapping;
+
+    const sc=await api.get('scope');
+    $('#scope').textContent=(sc.scope||[]).join(', ')||'—';
+
+    if(!connected){connected=true;$('#mode').textContent='live';}
+  }catch(e){$('#mode').textContent='offline (start the server)';}
+}
+window.decide=async(id,d)=>{await api.post('escalation',{id,decision:d});tick();};
+$('#send').onclick=async()=>{const t=$('#cmd').value.trim();if(t){await api.post('command',{text:t});$('#cmd').value='';tick();}};
+$('#cmd').addEventListener('keydown',e=>{if(e.key==='Enter')$('#send').click();});
+$('#switch').onclick=async()=>{const o=$('#models').selectedOptions[0];if(o&&o.value){await api.post('switch',{path:o.value,fits:o.dataset.fits==='true'});tick();}};
+$('#authbtn').onclick=async()=>{const t=$('#scopein').value.trim();if(t){await api.post('scope',{target:t});$('#scopein').value='';tick();}};
+document.querySelectorAll('.preset').forEach(b=>b.onclick=async()=>{await api.post('preset',{name:b.dataset.p});tick();});
+
+drawStatic();tick();setInterval(tick,1500);
+</script>
+</body>
+</html>

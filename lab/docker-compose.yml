@@ -1,0 +1,28 @@
+# =============================================================================
+# PSE-KALI — LAB TARGET
+# A self-contained, intentionally-weak target on the exact subnet the engagement
+# authorizes (10.10.10.0/24), at 10.10.10.5. Recon enumerates it, the sniffer
+# captures its traffic, the cracker audits a hash it exposes. Nothing here
+# touches any real network — bring it up, run the engagement against it, tear
+# it down. This IS the authorized scope; do not point the swarm anywhere else.
+#
+#   docker compose -f lab/docker-compose.yml up -d --build
+#   docker compose -f lab/docker-compose.yml down
+# =============================================================================
+services:
+  target:
+    build: ./target
+    container_name: pse-lab-target
+    hostname: target
+    networks:
+      labnet:
+        ipv4_address: 10.10.10.5
+    # No host port mapping: the operator runs on labnet and reaches it directly.
+
+networks:
+  labnet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1

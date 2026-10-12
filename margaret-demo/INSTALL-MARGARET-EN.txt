@@ -1,0 +1,105 @@
+===============================================================================
+ PSE-Kali — INSTALL GUIDE FOR MARGARET  (your Ubuntu laptop)
+===============================================================================
+
+Hi Margaret! Before our session we need to install a few programs on your
+laptop. This is ONLY the installation — Andrej will give you the actual
+exercises once everything is installed.
+
+You will copy-paste each block into a Terminal and press Enter. When a command
+asks for your password, type it (you won't see the characters — that's normal)
+and press Enter. If it asks "Do you want to continue? [Y/n]", press Y then Enter.
+
+Everything runs from inside the project folder called  pse-kali3.
+
+-------------------------------------------------------------------------------
+STEP 0 · Open a Terminal and go into the project folder
+-------------------------------------------------------------------------------
+Open the "Terminal" app, then:
+
+    cd ~/Desktop/pse-kali3
+
+If that gives "No such file or directory", ask Andrej where the pse-kali3
+folder is on your laptop, then use that path. You must be inside this folder
+for the rest of the class.
+
+-------------------------------------------------------------------------------
+STEP 1 · Refresh the software list, then install the basics
+-------------------------------------------------------------------------------
+    sudo apt update
+    sudo apt install -y python3 python3-venv python3-pip python3-yaml git curl
+
+(Python is the language the tool is written in. Most likely it is missing on a
+fresh laptop — this installs it. Nothing here touches your files.)
+
+-------------------------------------------------------------------------------
+STEP 2 · Install the four security tools you'll learn
+-------------------------------------------------------------------------------
+    sudo apt install -y nmap hashcat john tcpdump openssh-client \
+        pocl-opencl-icd ocl-icd-libopencl1
+
+  nmap      -> discovers what services are running on a machine
+  hashcat   -> recovers (cracks) weak passwords from a hash
+  john      -> a second cracker, as a backup to hashcat
+  tcpdump   -> watches network traffic
+  ssh       -> logs into a machine you're allowed to access
+  (the two "opencl" packages just let hashcat run on your CPU)
+
+-------------------------------------------------------------------------------
+STEP 3 · Install Docker (runs the safe practice target)
+-------------------------------------------------------------------------------
+    sudo apt install -y docker.io docker-compose-v2
+
+This lets your laptop run a small, deliberately-weak "practice box" locally, so
+you can safely try the tools against something that is 100% yours.
+
+-------------------------------------------------------------------------------
+STEP 4 · Install the SSH server (so your machine is part of the exercise)
+-------------------------------------------------------------------------------
+    sudo apt install -y openssh-server
+    sudo systemctl enable --now ssh
+
+(One part of the class is Andrej trying to reach your machine while your machine
+defends itself. This puts a "front door" on your laptop that we will then lock
+down together during the session.)
+
+-------------------------------------------------------------------------------
+STEP 4b · The point-and-click console (PySide6)
+-------------------------------------------------------------------------------
+    pip install --user --break-system-packages PySide6
+
+This is the visual window with the Attack / Defend buttons. Each button opens a
+terminal, shows you the exact command, and runs it only after you press Enter
+and type your Ubuntu password — nothing runs on its own. (The "--break-system-
+packages" part is just normal on Ubuntu 24.04; it installs into your own home
+folder and changes nothing system-wide.)
+
+-------------------------------------------------------------------------------
+STEP 5 · Let the tools run without sudo every time
+-------------------------------------------------------------------------------
+    sudo usermod -aG docker $USER
+    sudo setcap cap_net_raw+ep $(which tcpdump)
+
+IMPORTANT: after this step, LOG OUT and LOG BACK IN once (or just restart the
+laptop). This is what makes Docker work without typing "sudo" each time.
+
+-------------------------------------------------------------------------------
+STEP 6 · Check that everything installed (run this whole block)
+-------------------------------------------------------------------------------
+    for t in python3 nmap hashcat john tcpdump ssh curl docker git; do \
+        if command -v $t >/dev/null; then echo "OK   $t"; \
+        else echo "MISSING  $t  <-- tell Andrej"; fi; done
+    docker compose version >/dev/null 2>&1 && echo "OK   docker compose" \
+        || echo "MISSING  docker compose  <-- tell Andrej"
+    python3 -c "import PySide6" 2>/dev/null && echo "OK   PySide6 (console)" \
+        || echo "MISSING  PySide6  <-- tell Andrej"
+
+You want every line to say "OK". If any line says "MISSING", send Andrej a photo
+of the screen.
+
+-------------------------------------------------------------------------------
+DONE
+-------------------------------------------------------------------------------
+When every line in Step 6 says OK, message Andrej: "installation done".
+He'll walk you through the rest live. See you at the session!  🙂
+===============================================================================

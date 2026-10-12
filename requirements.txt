@@ -1,0 +1,14 @@
+# PSE-Kali dependencies.
+# The KERNEL and orchestrator are pure standard library — nothing here is needed
+# to run the tests or the mock demo. Install only what a real run demands.
+
+# --- config file (--config) ---
+pyyaml>=6.0
+
+# --- operator backends (install the one you use) ---
+anthropic>=0.116         # claude:  ClaudeBackend
+mistralai>=1.0           # mistral: MistralBackend
+llama-cpp-python>=0.3    # gguf:    LocalGGUFBackend (local, offline)
+
+# --- optional: native desktop monitor (LGPL; the HTML monitor needs nothing) ---
+# PySide6>=6.6      # monitor/pse_monitor_qt.py — native QPainter, no web engine

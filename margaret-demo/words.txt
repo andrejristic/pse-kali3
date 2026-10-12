@@ -1,0 +1,7 @@
+password
+123456
+hunter2
+letmein
+qwerty
+admin
+summer2024

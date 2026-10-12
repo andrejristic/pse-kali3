@@ -1,0 +1,26 @@
+# PSE-Kali engagement config. Loaded with:  run_engagement.py --config config.yaml
+# This IS the rules of engagement. The kernel enforces it; keep it honest.
+
+# Authorized scope — the ONLY targets the swarm may act on. The shipped lab
+# target lives here. Do not add a real host unless you have written authorization.
+scope:
+  - 10.10.10.0/24
+
+# Per-(target,tool) grants. A tool not granted for a target is un-authorized.
+authorizations:
+  - target_scope: [10.10.10.0/24]
+    tools: [nmap, masscan, theHarvester, hashcat, john, tcpdump, tshark, ssh]
+
+# Which model drives the operator:
+#   claude:claude-opus-4-8 | mistral:mistral-large-latest | gguf:/path/model.gguf
+# Omit to auto-select a local GGUF sized to this machine's RAM (see MODELS in
+# run_engagement.py).
+backend: gguf:/models/qwen2.5-3b-instruct-q4.gguf
+
+# Local-model (llama-cpp) tuning — only applies when backend is gguf:...
+# On the 16 GB machine you can run a 7B model comfortably; set n_gpu_layers > 0
+# if you have a GPU (huge speedup), else leave 0 and n_threads to your core count.
+gguf:
+  n_ctx: 8192
+  n_gpu_layers: 0        # e.g. 33 to offload all layers of a 7B to GPU
+  n_threads: 0           # 0 = auto-detect

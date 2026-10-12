@@ -1,0 +1,8 @@
+# PSE-Kali web console — hosting dependencies.
+# The kernel + server are pure standard library; only config parsing needs this.
+pyyaml>=6.0
+
+# For a LIVE public demo, add ONE backend and set PSE_BACKEND accordingly:
+#   anthropic>=0.116        # PSE_BACKEND=claude:claude-opus-4-8   (low RAM, fits any free tier)
+#   mistralai>=1.0          # PSE_BACKEND=mistral:mistral-large-latest
+#   llama-cpp-python>=0.3   # PSE_BACKEND=gguf:models/<model>.gguf (needs ~4-8 GB RAM; HF Spaces only)

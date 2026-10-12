@@ -1,0 +1,19 @@
+# PSE-Kali autostart — runs one governed engagement on boot and writes the audit
+# log the monitor reads. Install on the live image:
+#   cp packaging/pse-kali.service /etc/systemd/system/
+#   systemctl enable --now pse-kali
+[Unit]
+Description=PSE-Kali governed security engagement
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/pse-kali
+# --config makes the rules of engagement explicit and auditable
+ExecStart=/usr/bin/python3 run_engagement.py --config config.yaml --execute
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,29 @@
+name: build-deb
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  deb:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Offline test suite
+        run: |
+          python -m pip install -q pyyaml
+          make test
+      - name: Build .deb
+        run: bash packaging/build_deb.sh
+      - name: Install and smoke
+        run: |
+          sudo apt-get update && sudo apt-get install -y ./dist/pse-kali_*_all.deb python3-yaml
+          pse-kali --help || true
+          cd /opt/pse-kali && python3 run_engagement.py --backend mock --selftest
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pse-kali-deb
+          path: dist/*.deb
